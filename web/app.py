@@ -4,7 +4,8 @@ import librosa
 import numpy as np
 
 # Load the trained model
-model = tf.keras.models.load_model("C:/DeepBeat/models/music_genre_ann.h5")
+model = tf.keras.models.load_model(r"C:\Users\Ujjwal\Downloads\DeepBeat\DeepBeat\models\music_genre_ann.h5")
+
 
 # Define the genres (ensure these match your label encoding)
 GENRES = ['blues', 'classical', 'country', 'disco', 'hiphop',
@@ -29,14 +30,18 @@ def extract_features(file_path):
     spectral_contrast = librosa.feature.spectral_contrast(y=y, sr=sr)
     spectral_contrast_mean = np.mean(spectral_contrast.T, axis=0)
 
-    # Combine features into a single array
+    # Pad or truncate to ensure a consistent size of 57
     combined_features = np.hstack((mfccs_mean, chroma_mean, spectral_contrast_mean))
-
-    # Ensure the resulting feature vector has exactly 57 elements
-    if combined_features.shape[0] != 57:
-        raise ValueError(f"Feature vector shape mismatch: Expected 57, got {combined_features.shape[0]}")
+    target_size = 57
+    if combined_features.shape[0] < target_size:
+        # Pad with zeros if features are less than 57
+        combined_features = np.pad(combined_features, (0, target_size - combined_features.shape[0]))
+    elif combined_features.shape[0] > target_size:
+        # Truncate if features exceed 57
+        combined_features = combined_features[:target_size]
 
     return combined_features
+
 
 
 
@@ -77,4 +82,5 @@ def predict():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=False, port=5000)
+
